@@ -6,6 +6,7 @@
          aws_request_xml2/5, aws_request_xml2/7,
          param_list/2, default_config/0, update_config/1, format_timestamp/1,
          http_headers_body/1,
+         lhttpc_headers_body/1,
          sign_v4/5]).
 
 -include("erlcloud.hrl").
@@ -237,6 +238,16 @@ http_headers_body({ok, {{_HTTPVer, OKStatus, _StatusLine}, Headers, Body}})
 http_headers_body({ok, {{_HTTPVer, Status, StatusLine}, _Headers, Body}}) ->
     {error, {http_error, Status, StatusLine, Body}};
 http_headers_body({error, Reason}) ->
+    {error, {socket_error, Reason}}.
+
+-spec lhttpc_headers_body({ok, tuple()} | {error, term()}) -> {ok, {headers(), string()}} | {error, tuple()}.
+%% Extract the headers and body and do error handling on the return of a httpc:request call.
+lhttpc_headers_body({ok, {{OKStatus, _StatusLine}, Headers, Body}}) 
+  when OKStatus >= 200, OKStatus =< 299 ->
+    {ok, {Headers, Body}};
+lhttpc_headers_body({ok, {{Status, StatusLine}, _Headers, Body}}) ->
+    {error, {http_error, Status, StatusLine, Body}};
+lhttpc_headers_body({error, Reason}) ->
     {error, {socket_error, Reason}}.
 
 %% http://docs.aws.amazon.com/general/latest/gr/signature-version-4.html

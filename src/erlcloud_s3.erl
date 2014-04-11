@@ -96,6 +96,7 @@ configure(AccessKeyID, SecretAccessKey, Host, Port) ->
                                 | eu.
 
 -define(XMLNS_S3, "http://s3.amazonaws.com/doc/2006-03-01/").
+-define(DEFAULT_TIMEOUT, 120000).
 
 -spec copy_object(string(), string(), string(), string()) -> proplist().
 
@@ -914,12 +915,12 @@ s3_request2_no_update(Config, Method, Host, Path, Subresource, Params, POSTData,
                                ]),
 
     Response = case Method of
-                   get -> httpc:request(Method, {RequestURI, RequestHeaders}, [], []);
-                   head -> httpc:request(Method, {RequestURI, RequestHeaders}, [], []);
-                   delete -> httpc:request(Method, {RequestURI, RequestHeaders}, [], []);
-                   _ -> httpc:request(Method, {RequestURI, RequestHeaders, ContentType, Body}, [], [])
+                   get -> lhttpc:request(RequestURI, Method, RequestHeaders, ?DEFAULT_TIMEOUT);
+                   head -> lhttpc:request(RequestURI, Method, RequestHeaders, ?DEFAULT_TIMEOUT);
+                   delete -> lhttpc:request(RequestURI, Method, RequestHeaders, ?DEFAULT_TIMEOUT);
+                   _ -> lhttpc:request(RequestURI, Method, RequestHeaders, Body, ?DEFAULT_TIMEOUT)
                end,
-    erlcloud_aws:http_headers_body(Response).
+    erlcloud_aws:lhttpc_headers_body(Response).
 
 make_authorization(Config, Method, ContentMD5, ContentType, Date, AmzHeaders,
                    Host, Resource, Subresource, Params) ->
